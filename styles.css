@@ -52,6 +52,7 @@ button { color: inherit; }
 .search-row button:disabled { cursor: wait; opacity: .7; }
 .search-message { min-height: 18px; margin-top: 7px; color: var(--muted); font-size: 12px; }
 .search-message.is-error { color: #a22a3a; }
+.search-provider { margin: 2px 0 0; color: #7a8791; font-size: 9px; line-height: 1.4; }
 .search-results { position: absolute; z-index: 900; top: 79px; right: 0; left: 0; max-height: min(42dvh, 320px); margin: 0; padding: 5px; overflow-y: auto; list-style: none; background: var(--paper); border: 1px solid var(--line); border-radius: 10px; box-shadow: 0 14px 36px rgb(20 32 43 / 18%); }
 .search-results button { width: 100%; padding: 11px 10px; text-align: left; line-height: 1.4; background: transparent; border: 0; border-radius: 7px; cursor: pointer; }
 .search-results button:hover, .search-results button:focus-visible { background: #edf4fc; outline: none; }
@@ -123,7 +124,8 @@ button { color: inherit; }
   .search-row button { box-shadow: 0 5px 18px rgb(20 32 43 / 16%); }
   .search-message { min-height: 16px; padding-left: 3px; text-shadow: 0 1px 2px white; }
   .search-results { top: 51px; max-height: 36dvh; }
-  .place-row { position: absolute; top: calc(79px + env(safe-area-inset-top)); left: 12px; display: flex; max-width: calc(100vw - 24px); padding: 7px 8px 7px 10px; background: rgb(255 255 255 / 93%); border: 1px solid rgb(203 212 218 / 88%); border-radius: 9px; box-shadow: 0 4px 14px rgb(20 32 43 / 12%); backdrop-filter: blur(7px); }
+  .search-provider { padding-left: 3px; text-shadow: 0 1px 2px white; }
+  .place-row { position: absolute; top: calc(96px + env(safe-area-inset-top)); left: 12px; display: flex; max-width: calc(100vw - 24px); padding: 7px 8px 7px 10px; background: rgb(255 255 255 / 93%); border: 1px solid rgb(203 212 218 / 88%); border-radius: 9px; box-shadow: 0 4px 14px rgb(20 32 43 / 12%); backdrop-filter: blur(7px); }
   .place-row .eyebrow { display: none; }
   .place-row strong { max-width: calc(100vw - 125px); font-size: 12px; }
   .text-button { min-width: 57px; min-height: 30px; font-size: 11px; }
@@ -140,7 +142,7 @@ button { color: inherit; }
   .timeline-head { margin-bottom: 10px; }
   #frame-time { font-size: 22px; }
   .frame-date { font-size: 11px; }
-  .leaflet-control-zoom { margin-top: 132px !important; }
+  .leaflet-control-zoom { margin-top: 149px !important; }
   .leaflet-bottom .leaflet-control-attribution { margin-bottom: calc(145px + env(safe-area-inset-bottom)); }
 }
 
