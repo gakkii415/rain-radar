@@ -1,4 +1,7 @@
-const JMA_TILE_ROOT = "https://www.jma.go.jp/bosai/jmatile/data/nowc";
+const JMA_TILE_ROOTS = {
+  hrpns: "https://www.jma.go.jp/bosai/jmatile/data/nowc",
+  rasrf: "https://www.jma.go.jp/bosai/jmatile/data/rasrf",
+};
 
 export function parseJmaTime(value) {
   if (!/^\d{14}$/.test(value)) return new Date(NaN);
@@ -10,33 +13,64 @@ export function parseJmaTime(value) {
 }
 
 export function buildRadarTileUrl(frame) {
-  return `${JMA_TILE_ROOT}/${frame.basetime}/none/${frame.validtime}/surf/hrpns/{z}/{x}/{y}.png`;
+  const product = frame.product || "hrpns";
+  const member = product === "rasrf" ? (frame.member || "none") : "none";
+  return `${JMA_TILE_ROOTS[product]}/${frame.basetime}/${member}/${frame.validtime}/surf/${product}/{z}/{x}/{y}.png`;
 }
 
-export function buildTimeline(observations, forecasts) {
+export function buildTimelines(observations, forecasts, extendedForecasts) {
   const observed = observations.find((item) => item.elements?.includes("hrpns"));
-  if (!observed) return [];
+  if (!observed) return { short: [], long: [] };
 
   const startMs = parseJmaTime(observed.validtime).getTime();
-  const futureFrames = forecasts
+  const shortForecasts = forecasts
     .filter((item) => item.elements?.includes("hrpns"))
     .filter((item) => {
       const diff = parseJmaTime(item.validtime).getTime() - startMs;
       return diff > 0 && diff <= 60 * 60 * 1000;
     });
 
-  const frames = [{ ...observed, kind: "observation", offsetMinutes: 0 }];
-  for (const item of futureFrames) {
-    frames.push({
+  const observation = { ...observed, kind: "observation", product: "hrpns", offsetMinutes: 0 };
+  const short = [observation];
+  for (const item of shortForecasts) {
+    short.push({
       ...item,
-      kind: "forecast",
+      kind: "shortForecast",
+      product: "hrpns",
       offsetMinutes: Math.round((parseJmaTime(item.validtime).getTime() - startMs) / 60000),
     });
   }
 
-  return frames
+  const normalizedShort = short
     .sort((a, b) => a.validtime.localeCompare(b.validtime))
     .filter((item, index, all) => index === 0 || item.validtime !== all[index - 1].validtime);
+
+  const byValidTime = new Map();
+  for (const item of extendedForecasts.filter((entry) => entry.elements?.includes("rasrf"))) {
+    const diff = parseJmaTime(item.validtime).getTime() - startMs;
+    if (diff <= 60 * 60 * 1000 || diff > 15 * 60 * 60 * 1000) continue;
+    const existing = byValidTime.get(item.validtime);
+    if (!existing || item.basetime > existing.basetime) byValidTime.set(item.validtime, item);
+  }
+
+  const long = [observation, ...[...byValidTime.values()]
+    .sort((a, b) => a.validtime.localeCompare(b.validtime))
+    .map((item) => ({
+      ...item,
+      kind: "extendedForecast",
+      product: "rasrf",
+      offsetMinutes: Math.round((parseJmaTime(item.validtime).getTime() - startMs) / 60000),
+    }))];
+
+  return { short: normalizedShort, long };
+}
+
+export function formatOffsetMinutes(minutes) {
+  if (!minutes) return "現在";
+  if (minutes < 60) return `${minutes}分後`;
+  const hours = Math.floor(minutes / 60);
+  const remainder = minutes % 60;
+  return remainder ? `${hours}時間${remainder}分後` : `${hours}時間後`;
 }
 
 export function formatJst(value, options) {

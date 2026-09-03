@@ -6,7 +6,7 @@
     <meta name="theme-color" content="#f5f7f8" />
     <meta
       name="description"
-      content="場所を検索して、現在から60分後までの雨雲の動きを5分刻みで確認できます。"
+      content="場所を検索して、現在から15時間後までの雨の予報を確認できます。"
     />
     <title>雨雲レーダー</title>
     <link
@@ -26,7 +26,7 @@
           </span>
           <div>
             <h1>雨雲レーダー</h1>
-            <p>現在〜60分後 · v1</p>
+            <p>現在〜15時間後 · v2</p>
           </div>
         </header>
 
@@ -72,7 +72,9 @@
 
         <details class="info-note">
           <summary>データについて</summary>
-          <p>気象庁の高解像度降水ナウキャストを表示しています。30分先までは250m、35〜60分先は1km解像度です。雨雲以外の反射や、観測休止による欠測が含まれる場合があります。</p>
+          <p>60分先までは高解像度降水ナウキャストを5分ごとに表示します。30分先までは250m、35〜60分先は1km解像度です。</p>
+          <p>その先は「今後の雨」の1時間降水量予報を最大15時間先まで表示します。6時間先までは1km、7〜15時間先は5km解像度で、先になるほど予報の不確実性が高まります。</p>
+          <p>雨雲以外の反射や、観測休止による欠測が含まれる場合があります。</p>
           <p>入力した地名は検索時にOpenStreetMapへ送信されます。個人情報は入力しないでください。</p>
         </details>
 
@@ -97,6 +99,10 @@
         </div>
 
         <section class="timeline" aria-label="表示時刻">
+          <div class="range-switch" role="group" aria-label="予報範囲">
+            <button type="button" data-range="short">60分先まで</button>
+            <button type="button" data-range="long" class="is-active" aria-pressed="true">15時間先まで</button>
+          </div>
           <div class="timeline-head">
             <div>
               <span id="frame-kind" class="frame-kind">実況</span>

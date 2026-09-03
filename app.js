@@ -1,12 +1,13 @@
-import { buildRadarTileUrl, buildTimeline, formatJst } from "./radar-utils.js";
+import { buildRadarTileUrl, buildTimelines, formatJst, formatOffsetMinutes } from "./radar-utils.js";
 
 const DATA_URLS = {
   observations: "https://www.jma.go.jp/bosai/jmatile/data/nowc/targetTimes_N1.json",
   forecasts: "https://www.jma.go.jp/bosai/jmatile/data/nowc/targetTimes_N2.json",
+  extendedForecasts: "https://www.jma.go.jp/bosai/jmatile/data/rasrf/targetTimes.json",
 };
 const SEARCH_ENDPOINT = "https://nominatim.openstreetmap.org/search";
 const DEFAULT_LOCATION = { lat: 34.98585, lon: 135.75877, label: "京都駅周辺" };
-const STORAGE_KEYS = { location: "rain-radar:location", searchCache: "rain-radar:search-cache" };
+const STORAGE_KEYS = { location: "rain-radar:location", searchCache: "rain-radar:search-cache", range: "rain-radar:range" };
 const SEARCH_CACHE_MS = 24 * 60 * 60 * 1000;
 
 const elements = {
@@ -28,9 +29,12 @@ const elements = {
   rangeStart: document.querySelector("#range-start"),
   rangeMiddle: document.querySelector("#range-middle"),
   rangeEnd: document.querySelector("#range-end"),
+  rangeButtons: [...document.querySelectorAll("[data-range]")],
 };
 
 let frames = [];
+let timelines = { short: [], long: [] };
+let activeRange = readJson(STORAGE_KEYS.range, "long");
 let radarLayer = null;
 let pendingRadarLayer = null;
 let locationMarker = null;
@@ -56,6 +60,9 @@ elements.locateButton.addEventListener("click", locateUser);
 elements.refreshButton.addEventListener("click", () => loadRadarFrames({ keepIndex: true }));
 elements.slider.addEventListener("input", () => showFrame(Number(elements.slider.value)));
 elements.playButton.addEventListener("click", togglePlayback);
+for (const button of elements.rangeButtons) {
+  button.addEventListener("click", () => selectRange(button.dataset.range));
+}
 document.addEventListener("click", (event) => {
   if (!elements.form.contains(event.target) && !elements.searchResults.contains(event.target)) {
     elements.searchResults.hidden = true;
@@ -73,27 +80,22 @@ async function loadRadarFrames({ keepIndex = false } = {}) {
   elements.refreshButton.disabled = true;
 
   try {
-    const [observationsResponse, forecastsResponse] = await Promise.all([
+    const [observationsResponse, forecastsResponse, extendedResponse] = await Promise.all([
       fetch(DATA_URLS.observations, { cache: "no-store" }),
       fetch(DATA_URLS.forecasts, { cache: "no-store" }),
+      fetch(DATA_URLS.extendedForecasts, { cache: "no-store" }),
     ]);
-    if (!observationsResponse.ok || !forecastsResponse.ok) throw new Error("data response error");
+    if (!observationsResponse.ok || !forecastsResponse.ok || !extendedResponse.ok) throw new Error("data response error");
 
-    const [observations, forecasts] = await Promise.all([
+    const [observations, forecasts, extendedForecasts] = await Promise.all([
       observationsResponse.json(),
       forecastsResponse.json(),
+      extendedResponse.json(),
     ]);
-    const nextFrames = buildTimeline(observations, forecasts);
-    if (nextFrames.length < 2) throw new Error("timeline is empty");
+    timelines = buildTimelines(observations, forecasts, extendedForecasts);
+    if (timelines.short.length < 2 || timelines.long.length < 2) throw new Error("timeline is empty");
 
-    frames = nextFrames;
-    elements.slider.max = String(frames.length - 1);
-    elements.slider.disabled = false;
-    elements.playButton.disabled = false;
-    updateRangeLabels();
-    const nextIndex = keepIndex ? Math.min(previousIndex, frames.length - 1) : 0;
-    elements.slider.value = String(nextIndex);
-    showFrame(nextIndex);
+    applyRange(activeRange, keepIndex ? previousIndex : 0);
 
     const updatedAt = formatJst(frames[0].validtime, { hour: "2-digit", minute: "2-digit", hour12: false });
     setDataStatus(`${updatedAt} 更新`, "live");
@@ -131,19 +133,45 @@ function showFrame(index) {
     pendingRadarLayer = null;
   });
 
-  const isForecast = frame.kind === "forecast";
-  elements.frameKind.textContent = isForecast ? `${frame.offsetMinutes}分後` : "実況";
+  const isForecast = frame.kind !== "observation";
+  elements.frameKind.textContent = formatOffsetMinutes(frame.offsetMinutes);
   elements.frameKind.classList.toggle("is-forecast", isForecast);
   elements.frameTime.textContent = formatJst(frame.validtime, { hour: "2-digit", minute: "2-digit", hour12: false });
-  elements.frameDate.textContent = formatJst(frame.validtime, { month: "short", day: "numeric", weekday: "short" });
+  const dataType = frame.kind === "extendedForecast" ? "1時間雨量" : frame.kind === "shortForecast" ? "高精細予報" : "実況";
+  elements.frameDate.textContent = `${formatJst(frame.validtime, { month: "short", day: "numeric", weekday: "short" })} · ${dataType}`;
 }
 
 function updateRangeLabels() {
   const middle = frames[Math.floor((frames.length - 1) / 2)];
   const end = frames.at(-1);
   elements.rangeStart.textContent = "現在";
-  elements.rangeMiddle.textContent = middle?.offsetMinutes ? `${middle.offsetMinutes}分後` : "";
-  elements.rangeEnd.textContent = end?.offsetMinutes ? `${end.offsetMinutes}分後` : "";
+  elements.rangeMiddle.textContent = formatOffsetMinutes(middle?.offsetMinutes);
+  elements.rangeEnd.textContent = formatOffsetMinutes(end?.offsetMinutes);
+}
+
+function selectRange(range) {
+  if (!timelines[range]?.length || range === activeRange) return;
+  if (playbackTimer) stopPlayback();
+  activeRange = range;
+  writeJson(STORAGE_KEYS.range, range);
+  applyRange(range, 0);
+}
+
+function applyRange(range, preferredIndex = 0) {
+  activeRange = timelines[range]?.length ? range : "short";
+  frames = timelines[activeRange];
+  for (const button of elements.rangeButtons) {
+    const selected = button.dataset.range === activeRange;
+    button.classList.toggle("is-active", selected);
+    button.setAttribute("aria-pressed", String(selected));
+  }
+  elements.slider.max = String(frames.length - 1);
+  elements.slider.disabled = false;
+  elements.playButton.disabled = false;
+  updateRangeLabels();
+  const index = Math.min(preferredIndex, frames.length - 1);
+  elements.slider.value = String(index);
+  showFrame(index);
 }
 
 function togglePlayback() {
