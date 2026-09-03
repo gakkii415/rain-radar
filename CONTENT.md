@@ -48,12 +48,12 @@
 
 ## Project Content Maturity
 
-- Content value / audience / use context:
-- Content types / structure / quality bar:
-- Current maturity / coverage / depth:
-- Core content set / completion criteria:
-- Next target state:
-- Expansion Set:
-- Deferred or rejected areas / reasons:
-- Sources / freshness / maintenance:
-- Durable content decisions:
+- Content value / audience / use context: 外出前や移動中に、指定地点へ雨が近づくか短時間で判断するための日本語表示。
+- Content types / structure / quality bar: 表示地点、実況/予報、実時刻、何分後、雨量凡例、データ更新状態、必要最小限の注意事項。
+- Current maturity / coverage / depth: 主要判断に必要な文言と出典、検索時のプライバシー注意、予測解像度の違いを掲載済み。
+- Core content set / completion criteria: 数値と状態が気象庁データに一致し、未確認の精度主張や警告を追加しないこと。
+- Next target state: 情報量を増やさず、外部データ仕様の変更時に表示と説明を更新できる状態。
+- Expansion Set: 30分先まで250m、35〜60分先は1kmという差と、非降水エコー・欠測の注意を短く追加。
+- Deferred or rejected areas / reasons: 長期天気予報、警報、防災解説は60分雨雲確認の中心用途外。
+- Sources / freshness / maintenance: 気象庁高解像度降水ナウキャスト、国土地理院タイル、OpenStreetMap Nominatim。各出典と検索送信先を画面に明示する。
+- Durable content decisions: 「現在」「何分後」と実時刻を併記し、予測を実況のように表現しない。

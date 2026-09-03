@@ -46,11 +46,11 @@
 
 ## Project Feature Maturity
 
-- Product / users / core outcome:
-- Current maturity:
-- Core feature set / completion criteria:
-- Next target state:
-- Expansion Set:
-- Deferred or rejected items / reasons:
-- Important flows / states / data decisions:
-- Durable feature decisions:
+- Product / users / core outcome: 日本国内の雨を確認したい一般利用者が、入力した場所の現在から60分後までの雨雲をすぐ確認する。
+- Current maturity: コア完成。場所検索、現在地、5分刻みの時刻移動、自動再生、更新、主要な失敗表示を実装済み。
+- Core feature set / completion criteria: 地名検索から候補選択、地図移動、実況・予報切替までが途切れず動くこと。通信失敗時も地図操作と再試行が可能であること。
+- Next target state: 現在の小規模公開用途で必要十分な状態を維持する。
+- Expansion Set: 実データに連動する時刻目盛り、レイヤー切替時のちらつき抑制、端末保存の失敗耐性、スマートフォンの凡例。
+- Deferred or rejected items / reasons: 会員登録・クラウドお気に入りは中心用途に対して過剰。オフライン雨雲表示は古い情報を現在情報と誤認させるため見送り。
+- Important flows / states / data decisions: 気象庁N1/N2のhrpnsを結合し、最新実況から60分以内だけを表示。検索はユーザー送信時のみ行い、結果を24時間・最大20件まで端末内に保存。
+- Durable feature decisions: 地図閲覧を妨げるマーケティング導線や認証を追加しない。ライブ情報の失敗時は明示して手動更新を残す。

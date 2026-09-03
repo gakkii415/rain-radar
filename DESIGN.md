@@ -350,14 +350,14 @@ Yesの場合、装飾を追加する前に、構成、情報階層、コンテ�
 
 ## Project Direction
 
-- Product / users / primary task:
-- Context of use / target devices:
-- Desired impression:
-- Information density / hierarchy:
-- Reference products / source URLs:
-- Selected reference dimensions / what to borrow:
-- What not to copy / avoid:
-- Structural direction:
-- Typography / color / spacing / shape direction:
-- Motion / responsive direction:
-- Durable design decisions:
+- Product / users / primary task: 日本国内の一般利用者向け雨雲レーダー。地名入力から、その地点の現在〜60分後を確認することが最優先。
+- Context of use / target devices: 外出前のスマートフォン利用が中心。Desktopでも広い地図を活かす。
+- Desired impression: 雨の直前でも迷わず読める、静かで信頼感のある観測画面。装飾より地図と時間を優先する。
+- Information density / hierarchy: 地図を最大面積で表示し、場所検索と時間操作を常時到達可能にする。出典と注意事項は補助階層。
+- Reference products / source URLs: 気象庁「雨雲の動き」 https://www.jma.go.jp/bosai/nowc/ 、ウェザーニュース雨雲レーダー https://weathernews.jp/onebox/radar/
+- Selected reference dimensions / what to borrow: 地図中心の画面、時間操作を地図下部へ置く構造、実況と予報の区別、降水色を邪魔しない淡い地図面。
+- What not to copy / avoid: 多数の天気指標、広告・記事導線、常時表示の詳細パネル、強いブランド装飾は採用しない。
+- Structural direction: Desktopは340pxの操作欄＋地図、Mobileは地図全面＋上部検索＋下部時刻操作へ再構成。単純な縦積みにはしない。
+- Typography / color / spacing / shape direction: 日本語システムフォント、時刻は大きな等幅数字。青は検索・地点・予報に限定。角丸と影は地図上に浮く操作面だけに使う。
+- Motion / responsive direction: 雨雲再生と場所移動だけを動かし、reduce-motion時は場所移動を即時化。Mobileでも凡例を小さく残す。
+- Durable design decisions: Hero、汎用カード群、背景装飾を置かず、画面の重心を地図に固定する。固有表現は「地図＋実況/何分後＋実時刻」が一体になった下部タイムライン。
